@@ -1,0 +1,54 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  imageName: 'enterprise-voice-backend'
+  acrName: 'auroraaudioacr'
+
+stages:
+- stage: BuildAndTest
+  jobs:
+  - job: Test
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.12'
+    - script: |
+        cd backend
+        python -m venv .venv
+        source .venv/bin/activate
+        pip install -r requirements.txt
+        pip install pytest httpx
+        pytest tests/
+      displayName: 'Run PyTest Unit Tests'
+
+- stage: PushAndDeploy
+  dependsOn: BuildAndTest
+  condition: succeeded()
+  jobs:
+  - job: DockerPush
+    steps:
+    - task: Docker@2
+      inputs:
+        containerRegistry: '$(acrName)'
+        repository: '$(imageName)'
+        command: 'buildAndPush'
+        Dockerfile: 'backend/Dockerfile'
+        tags: |
+          $(Build.BuildId)
+          latest
+
+  - job: KubernetesDeploy
+    dependsOn: DockerPush
+    steps:
+    - task: KubernetesManifest@1
+      inputs:
+        action: 'deploy'
+        connectionType: 'kubernetesServiceConnection'
+        kubernetesServiceConnection: 'aks-cluster-connection'
+        manifests: |
+          infrastructure/k8s/deployment.yaml
+          infrastructure/k8s/service.yaml
