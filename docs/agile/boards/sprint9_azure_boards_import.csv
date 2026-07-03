@@ -1,0 +1,9 @@
+Work Item Type,Title,Description,Story Points,Iteration Path,Tags
+User Story,Add Supabase project and env plumbing,"Create Supabase project, add VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY to frontend and SUPABASE_JWT_SECRET to backend config",2,Sprint 9,auth; infra
+User Story,Build login and signup UI,"Email/password sign in and sign up screens matching the glass dashboard theme, with error and confirmation states",3,Sprint 9,auth; frontend
+User Story,Gate dashboard behind Supabase session,"Unauthenticated visitors see the login screen; session persists across refresh; sign out button in header",3,Sprint 9,auth; frontend
+User Story,Verify Supabase JWTs in FastAPI,"HS256 verification of Supabase access tokens; protect /api/stats and /api/me; 401 on missing/expired/invalid token",5,Sprint 9,auth; backend
+User Story,Repair and extend unit tests,"Fix broken AgentRouter tests, add API tests covering health check and auth rejection paths",3,Sprint 9,quality
+User Story,Run tests on pull requests,"Add pr trigger to Azure Pipeline so BuildAndTest runs on every PR; document branch policy to block merge on red",2,Sprint 9,ci
+User Story,Frontend lint and build in CI,"npm ci + oxlint + vite build as a parallel CI job",1,Sprint 9,ci
+User Story,Rewrite README,"Accurate architecture (React not Vue), auth setup, testing and CI documentation, professional tone",2,Sprint 9,docs
