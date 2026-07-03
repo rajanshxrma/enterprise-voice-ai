@@ -4,7 +4,14 @@ from config import settings
 from database import SessionLocal, CallRecord, Transcript, CallOutcome, CallStatus
 from services.prompts import ROUTER_PROMPT, SALES_AGENT_PROMPT, CLAIMS_AGENT_PROMPT
 
-client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+_client = None
+
+def get_client() -> openai.AsyncOpenAI:
+    """Lazy singleton so importing this module never requires credentials (ci/tests)."""
+    global _client
+    if _client is None:
+        _client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    return _client
 
 class AgentRouter:
     def __init__(self, call_sid: str):
@@ -26,7 +33,7 @@ class AgentRouter:
         self.conversation_history.append({"role": "user", "content": text})
         
         # force JSON object response format via OpenAI API
-        response = await client.chat.completions.create(
+        response = await get_client().chat.completions.create(
             model="gpt-4o",
             messages=self.conversation_history,
             response_format={"type": "json_object"},
@@ -59,7 +66,7 @@ class AgentRouter:
             # FORCE GENERATE THE NEW AGENT'S GREETING
             self.conversation_history.append({"role": "system", "content": "You were just connected to the user. Introduce yourself and ask how you can help."})
             
-            response2 = await client.chat.completions.create(
+            response2 = await get_client().chat.completions.create(
                 model="gpt-4o",
                 messages=self.conversation_history,
                 response_format={"type": "json_object"},

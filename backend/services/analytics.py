@@ -4,7 +4,14 @@ import openai
 from config import settings
 from database import SessionLocal, CallRecord, Transcript, CallOutcome
 
-client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+_client = None
+
+def get_client() -> openai.AsyncOpenAI:
+    """Lazy singleton so importing this module never requires credentials (ci/tests)."""
+    global _client
+    if _client is None:
+        _client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    return _client
 
 async def analyze_failed_calls():
     """
@@ -36,7 +43,7 @@ async def analyze_failed_calls():
             {{"primary_reason": "string (e.g. 'price too high', 'AI sounded robotic', 'competitor mentioned')"}}
             """
             
-            response = await client.chat.completions.create(
+            response = await get_client().chat.completions.create(
                 model="gpt-4o",
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"}
