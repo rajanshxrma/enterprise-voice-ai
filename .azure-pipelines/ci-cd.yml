@@ -1,4 +1,12 @@
+# ci runs on every push to main AND every pr targeting main.
+# the BuildAndTest stage is the review gate: set a branch policy on main
+# requiring this pipeline to pass before a pr can merge
+# (azure devops -> repos -> branches -> main -> branch policies -> build validation).
+
 trigger:
+  - main
+
+pr:
   - main
 
 pool:
@@ -11,7 +19,7 @@ variables:
 stages:
 - stage: BuildAndTest
   jobs:
-  - job: Test
+  - job: BackendTests
     steps:
     - task: UsePythonVersion@0
       inputs:
@@ -22,12 +30,25 @@ stages:
         source .venv/bin/activate
         pip install -r requirements.txt
         pip install pytest httpx
-        pytest tests/
+        pytest tests/ -v
       displayName: 'Run PyTest Unit Tests'
+
+  - job: FrontendChecks
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '22.x'
+    - script: |
+        cd frontend
+        npm ci
+        npm run lint
+        npm run build
+      displayName: 'Lint and Build Frontend'
 
 - stage: PushAndDeploy
   dependsOn: BuildAndTest
-  condition: succeeded()
+  # deploy only on real pushes to main, never on pr validation builds
+  condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job: DockerPush
     steps:
@@ -50,5 +71,4 @@ stages:
         connectionType: 'kubernetesServiceConnection'
         kubernetesServiceConnection: 'aks-cluster-connection'
         manifests: |
-          infrastructure/k8s/deployment.yaml
-          infrastructure/k8s/service.yaml
+          infrastructure/k8s/azure-aks-manifest.yaml
