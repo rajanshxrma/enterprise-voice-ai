@@ -35,7 +35,7 @@ A voice agent platform for phone-based sales and claims workflows. Callers dial 
 | Agent engine | OpenAI GPT-4o with JSON-contract prompts | Intent routing, sales and claims conversations, outcome triggers |
 | API | FastAPI (Python 3.12) | WebSocket handling, authenticated REST endpoints |
 | Persistence | PostgreSQL + SQLAlchemy | Call records, transcripts, outcomes |
-| Auth | Supabase (JWT, HS256) | Email/password sessions; backend verifies tokens locally with no network hop |
+| Auth | Supabase (JWT, asymmetric JWKS) | Email/password sessions; backend verifies tokens against the project's JWKS signing keys (cached hourly), with an HS256 legacy fallback |
 | Dashboard | React 19 + Vite | Live call simulator and analytics UI |
 | Infrastructure | Terraform, AKS / Azure Container Apps | Reproducible cloud environments |
 | CI/CD | Azure Pipelines | Tests gate every PR; main deploys to ACR + AKS |
@@ -92,7 +92,8 @@ npm run dev
 | `OPENAI_API_KEY` | backend | GPT-4o agent engine |
 | `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` | backend | Live call ingress |
 | `DEEPGRAM_API_KEY` / `CARTESIA_API_KEY` | backend | Speech-to-text / text-to-speech |
-| `SUPABASE_JWT_SECRET` | backend | Verifies session tokens on protected endpoints |
+| `SUPABASE_URL` | backend | Fetches the project's JWKS signing keys to verify session tokens (asymmetric ES256/RS256) |
+| `SUPABASE_JWT_SECRET` | backend | Optional legacy HS256 fallback for older Supabase projects |
 | `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` | frontend | Supabase client for login |
 
 Without Supabase keys the dashboard runs in open demo mode (no login); without Twilio/OpenAI keys the simulator still works fully in the browser via the Web Speech API.
@@ -101,7 +102,7 @@ Without Supabase keys the dashboard runs in open demo mode (no login); without T
 
 ## Authentication
 
-Supabase issues a JWT on sign-in; the React app attaches it as a bearer token and FastAPI verifies the HS256 signature locally — no auth-service round trip per request.
+Supabase issues a JWT on sign-in; the React app attaches it as a bearer token and FastAPI verifies the signature before serving protected data. New Supabase projects sign tokens with asymmetric keys (ES256), so the backend pulls the project's public signing keys from its JWKS endpoint (`/auth/v1/.well-known/jwks.json`) and caches them for an hour — no auth-service round trip per request. Projects still on the legacy shared secret are supported through an HS256 fallback.
 
 ```
 POST supabase /auth  ──► session JWT ──► Authorization: Bearer <token>

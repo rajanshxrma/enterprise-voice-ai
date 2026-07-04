@@ -29,3 +29,5 @@ infrastructure/terraform/.terraform/
 infrastructure/terraform/terraform.tfstate
 infrastructure/terraform/terraform.tfstate.backup
 .terraform.lock.hcl
+
+CLAUDE.md
