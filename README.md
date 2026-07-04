@@ -1,4 +1,4 @@
-# Enterprise Voice AI Platform
+# Switchboard — Enterprise Voice AI Platform
 
 [![Azure](https://img.shields.io/badge/azure-%230072C6.svg?style=for-the-badge&logo=microsoftazure&logoColor=white)](https://azure.microsoft.com/) [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/) [![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)](https://react.dev/) [![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/) [![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/) [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
@@ -57,8 +57,8 @@ Failed calls get a second pass: an async analytics job re-reads the transcript a
 ### Option A — Docker (recommended)
 
 ```bash
-git clone https://github.com/rajanshxrma/enterprise-voice-ai.git
-cd enterprise-voice-ai
+git clone https://github.com/rajanshxrma/switchboard-ai.git
+cd switchboard-ai
 docker compose up --build
 ```
 
